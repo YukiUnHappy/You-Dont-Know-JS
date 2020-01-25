@@ -49,7 +49,7 @@ jobs:
       with:
         path: log.txt
     - name: Notify
-      uses: Lukasss93/telegram-action@792464d
+      uses: ./telegram-action-mod
       env:
         TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -57,10 +57,11 @@ jobs:
         message: |
           Event: ${{ github.event_name }} Status: ${{ job.status }}
           DeepDIG: ${{ env.DEEP_DIG }} Type: ${{ env.TYPE }}
+          ---	---	---
           ${{ steps.redirect.outputs.text }}
     - name: Notify (Fail)
       if: failure() || cancelled()
-      uses: Lukasss93/telegram-action@792464d
+      uses: ./telegram-action-mod
       env:
         TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
