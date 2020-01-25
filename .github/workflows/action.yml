@@ -50,7 +50,7 @@ jobs:
         message: |
           Event: ${{ github.event_name }} Status: ${{ job.status }}
           DeepDIG: ${{ env.DEEP_DIG }} Type: ${{ env.TYPE }}
-          ---\t---\t---
+          ---	---	---
           ${{ steps.redirect.outputs.text }}
     - name: Notify (Fail)
       if: failure() || cancelled()
