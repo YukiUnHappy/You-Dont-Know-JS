@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  schedule:
+    - cron: 15 10,22 * * *
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        TYPE: [0, 2]
+    runs-on: windows-latest
+    env:
+      DEEP_DIG: ${{ secrets.DEEP_DIG }}
+      TYPE: ${{ matrix.TYPE }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: master
+    - name: Unpack
+      env: 
+        SECURE: ${{ secrets.SECURE }}
+      shell: bash
+      run: ./unpack.sh
+    - name: Restore
+      shell: bash
+      run: |
+        curl https://downloads.rclone.org/rclone-current-windows-amd64.zip -o rclone.zip
+        unzip rclone.zip
+        mkdir ~/bin
+        echo "::add-path::$HOME\bin"
+        mv rclone-*-windows-amd64/* ~/bin
+        dotnet restore
+    - name: Build
+      run: dotnet build -c Release -o out -f netcoreapp3.1
+    - name: Test
+      id: test
+      shell: bash
+      run: |
+        mv out/* ./
+        dotnet MWCI.dll
+    - name: Check
+      run: exit 1
+      if: steps.test.outputs.skip
+    - name: Redirect
+      uses: pCYSl5EDgo/cat@ae86047
+      id: redirect
+      with:
+        path: log.txt
+    - name: Notify
+      uses: Lukasss93/telegram-action@792464d
+      env:
+        TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      with:
+        message: |
+          Event: ${{ github.event_name }} Status: ${{ job.status }}
+          DeepDIG: ${{ env.DEEP_DIG }} Type: ${{ env.TYPE }}
+          ${{ steps.redirect.outputs.text }}
+    - name: Notify (Fail)
+      if: failure() || cancelled()
+      uses: Lukasss93/telegram-action@792464d
+      env:
+        TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      with:
+        message: |
+          Event: ${{ github.event_name }} Status: ${{ job.status }}
+          DeepDIG: ${{ env.DEEP_DIG }} Type: ${{ env.TYPE }}
