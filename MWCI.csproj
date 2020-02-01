@@ -8,7 +8,8 @@
   <ItemGroup>
     <None Remove="Secure*" />
     <None Remove="Secure/*" />
-    <None Remove="*pack.sh" />
+    <None Remove="*pack*" />
+    <None Remove="telegram-action-mod\**" />
   </ItemGroup>
 
   <ItemGroup>
